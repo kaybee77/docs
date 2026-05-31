@@ -1,0 +1,76 @@
+---
+title: "Artificial Intelligence in Engineering"
+description: "How AI is reshaping design, analysis, manufacturing, and the day-to-day work of engineers."
+---
+
+Engineering has always been about turning constraints into reliable systems. Artificial intelligence extends that tradition by helping teams explore more options, catch problems earlier, and automate work that used to require painstaking manual review.
+
+This post outlines where AI fits in the engineering lifecycle, what is changing in practice, and what remains firmly in human hands.
+
+## Where AI shows up today
+
+<CardGroup cols={2}>
+  <Card title="Design and simulation" icon="compass-drafting">
+    Generative design, surrogate models, and faster parameter sweeps shorten iteration cycles for structures, fluids, and thermal systems.
+  </Card>
+  <Card title="Inspection and quality" icon="magnifying-glass">
+    Computer vision flags defects on production lines and in field assets with consistency that scales beyond manual sampling alone.
+  </Card>
+  <Card title="Operations and maintenance" icon="wrench">
+    Predictive maintenance models estimate failure risk from sensor histories, reducing unplanned downtime when data quality is sound.
+  </Card>
+  <Card title="Knowledge work" icon="brain">
+    Assistants summarize standards, draft test plans, and help engineers navigate large document corpora—always with verification against source material.
+  </Card>
+</CardGroup>
+
+## Benefits engineers are seeing
+
+- **Faster exploration**: Models can propose candidate geometries, control strategies, or bill-of-materials alternatives that teams then validate with physics-based tools.
+- **Earlier risk detection**: Anomaly detection on telemetry and test data surfaces outliers before they become field failures.
+- **Better use of expertise**: Routine drafting, tagging, and report assembly consume less senior time when assistants handle first passes under clear review gates.
+
+<Tip>
+  Treat AI outputs as hypotheses, not conclusions. The engineering method still applies: define requirements, bound uncertainty, test against reality, and document assumptions.
+</Tip>
+
+## Challenges to plan for
+
+AI in engineering fails quietly when inputs are wrong, labels are biased, or the problem drifts outside training conditions. Common pitfalls include:
+
+1. **Data gaps** — Missing or mislabeled sensor streams produce confident but wrong predictions.
+2. **Overfitting to history** — Models trained on past operating regimes may not generalize to new materials, climates, or regulations.
+3. **Accountability** — Regulations and safety cases still require traceable reasoning; black-box scores alone rarely satisfy reviewers.
+
+<Warning>
+  Never deploy safety-critical decisions on AI alone without independent checks, defined fallbacks, and human authority for exceptions.
+</Warning>
+
+## A practical adoption path
+
+<Steps>
+  <Step title="Start with a narrow use case">
+    Pick one workflow with measurable pain—e.g., classifying inspection images or ranking maintenance tickets—and define success metrics before buying tools.
+  </Step>
+  <Step title="Invest in data infrastructure">
+    Align naming, timestamps, and units across systems. Most engineering AI projects stall on data engineering, not model selection.
+  </Step>
+  <Step title="Keep humans in the loop">
+    Use AI for drafts, rankings, and triage; reserve sign-off for licensed engineers and established verification procedures.
+  </Step>
+  <Step title="Iterate with domain feedback">
+    Retrain and recalibrate when field teams report systematic errors. Engineering AI improves through operational learning loops, not one-time launches.
+  </Step>
+</Steps>
+
+## What stays human
+
+Judgment under ambiguity, ethical trade-offs, client communication, and responsibility for public safety do not transfer to models. AI amplifies engineers who understand first principles, codes, and the limits of their tools.
+
+The future of engineering is not “AI instead of engineers.” It is engineers who combine rigorous analysis with intelligent systems that handle scale—so more effort goes to problems that matter.
+
+## Further reading
+
+- National and industry standards for AI in safety-related systems (e.g., risk management frameworks in your jurisdiction)
+- Your organization’s model governance, data retention, and change-control policies
+- Vendor documentation for simulation, PLM, and MLOps tools already in your stack
