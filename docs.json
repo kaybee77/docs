@@ -10,34 +10,8 @@
   "favicon": "/favicon.svg",
   "navigation": {
     "pages": [
-      {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
-        ]
-      },
-      {
-        "group": "Blog",
-        "pages": [
-          "blog/artificial-intelligence-in-engineering"
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+      "index"
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
