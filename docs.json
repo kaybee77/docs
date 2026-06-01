@@ -10,7 +10,14 @@
   "favicon": "/favicon.svg",
   "navigation": {
     "pages": [
-      "index"
+      "index",
+      {
+        "group": "Blog",
+        "pages": [
+          "blog/role-of-ai-in-robotics",
+          "blog/artificial-intelligence-in-engineering"
+        ]
+      }
     ]
   },
   "logo": {

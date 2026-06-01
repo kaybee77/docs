@@ -1,0 +1,202 @@
+---
+title: "The Role of AI in Robotics"
+description: "From perception and world models to vision-language-action policies — where learning ends and control theory still wins."
+---
+
+A robot is not a chatbot on wheels. It is a **closed-loop cyber-physical system** that must sense, decide, and act under hard timing, power, and safety constraints. Artificial intelligence enters that loop where data is abundant and models of the world are incomplete — not where physics, actuators, or certification requirements disappear.
+
+The central claim of this article: **AI compresses epistemic uncertainty** (what the world is, what task is intended, what will happen next). **Control and mechanics handle aleatoric and physical constraints** (sensor noise distributions, contact impulses, torque limits, worst-case timing). Confusing the two is how impressive demos become fragile products.
+
+## The robotics–AI stack
+
+Every capable robot implements a pipeline. Learning may sit at one layer or several; classical methods often remain as the backbone that guarantees stability.
+
+<Steps>
+  <Step title="Sense">
+    Raw measurements: LiDAR scans, RGB-D frames, IMU propagation, joint encoders, force/torque at the wrist, tactile arrays, proprioceptive currents. Sampling rates and synchronization matter as much as algorithm choice.
+  </Step>
+  <Step title="Perceive">
+    State estimation and scene understanding: odometry, SLAM, semantic segmentation, object pose (6-DoF), human pose, affordance maps. Outputs are beliefs — means, covariances, or learned embeddings — not commands.
+  </Step>
+  <Step title="Predict">
+    Forward models of dynamics and interaction: rigid-body simulators, contact-rich simulators, learned world models, residual dynamics networks. Prediction supports planning and anomaly detection.
+  </Step>
+  <Step title="Plan">
+    Task allocation, grasp selection, footstep placement, trajectory optimization, sampling-based motion planning (RRT*, PRM), mixed-integer formulations for contact sequencing. Partial observability makes this a **POMDP** in principle even when engineers implement pragmatic approximations.
+  </Step>
+  <Step title="Act">
+    Low-level tracking: PID, inverse dynamics, **model predictive control (MPC)**, whole-body control for humanoids, impedance control for contact-rich manipulation. This layer must respect bandwidth and stability margins.
+  </Step>
+  <Step title="Learn">
+    Offline and online adaptation: imitation from demonstrations, reinforcement learning in sim, fine-tuning on deployment logs, fleet-level aggregation. Learning updates beliefs and policies; it does not remove the need for monitors and fallbacks.
+  </Step>
+</Steps>
+
+At each interface, teams choose **classical**, **hybrid**, or **learned** implementations. Hybrids are common in production: a learned perception module feeds a certifiable planner; a **residual policy** adds learned corrections on top of a model-based controller that enforces constraints.
+
+```text
+sense → perceive → predict → plan → act
+         ↑___________________________|
+                    learn (offline / online)
+```
+
+<Tip>
+  When debugging a robot, ask which layer failed: wrong geometry (perceive), wrong contact model (predict), infeasible trajectory (plan), or tracking error (act). Blaming "the AI" without locating the layer wastes weeks.
+</Tip>
+
+## Perception and scene understanding
+
+Perception turns high-dimensional sensor streams into structures planners can use. The field spans decades of geometric methods and a decade of scalable learning.
+
+**Classical and geometric approaches** remain strong where structure is stable: factor-graph SLAM, loop closure, bundle adjustment, ICP for alignment, hand-crafted features in structured environments. They offer interpretable failure modes and well-understood uncertainty propagation.
+
+**Learned perception** dominates unstructured scenes: convolutional and transformer backbones for detection and segmentation, dense depth from monocular or stereo networks, 6-DoF pose estimators trained on synthetic and real mixtures. Representations extend to **NeRF**-style and Gaussian-splatting scene models for manipulation research — useful for simulating grasps and viewpoints, expensive for millisecond industrial cycles.
+
+Failure modes are predictable and under-discussed in marketing:
+
+- **Lighting and materials** — specular, transparent, and black surfaces break depth and segmentation.
+- **Occlusion and clutter** — partial views produce multimodal pose hypotheses; planners must reason over ambiguity, not point estimates alone.
+- **Domain shift** — a warehouse model degrades in construction dust, seasonal outdoor vegetation, or a new end-effector mass.
+
+OOD (out-of-distribution) detection — ensembles, energy scores, latent-density monitors — belongs at the perception boundary so downstream layers do not treat a confident wrong label as ground truth.
+
+## Manipulation and locomotion
+
+**Manipulation** couples contact mechanics with high-dimensional action spaces. Learning has reshaped how teams acquire skills:
+
+- **Imitation learning** from teleoperation or kinesthetic teaching bootstraps policies when reward design is painful.
+- **Diffusion policies** and related generative action models capture multimodal demonstration data (many valid ways to peel, pour, or insert).
+- **Residual RL** trains a small learned correction on top of a stabilizing controller, preserving safety envelopes while improving performance.
+
+**Sim-to-real** is not a checkbox. It requires domain randomization (mass, friction, sensor noise), system identification, and digital twins calibrated to specific cells. Gaps appear at contact: stiction, compliance, cable stretch, and unmodeled backlash dominate transfer error.
+
+**Locomotion** on legs and humanoids typically pairs **MPC** or centroidal models with learned terrain classifiers or foothold evaluators. Pure end-to-end RL in simulation has produced remarkable research locomotion; fielded systems still lean on explicit balance constraints and supervisor stops.
+
+<CardGroup cols={2}>
+  <Card title="Perception" icon="eye">
+    SLAM, semantic maps, pose estimation, OOD gates — reduce uncertainty about state before any grip or step is committed.
+  </Card>
+  <Card title="Manipulation" icon="hand">
+    Imitation, diffusion policies, residual RL — acquire contact-rich skills where analytic models are incomplete.
+  </Card>
+  <Card title="Planning" icon="route">
+    Motion planning, grasp synthesis, footstep graphs — search or optimize over feasible sets, learned or classical.
+  </Card>
+  <Card title="Deployment" icon="server">
+    Sim2real, monitors, logging, fleet learning — close the loop without bypassing safety architecture.
+  </Card>
+</CardGroup>
+
+## Foundation models and embodied AI
+
+Large vision-language models (VLMs) brought open-vocabulary scene understanding and instruction following to robotics research. The emerging **vision-language-action (VLA)** paradigm maps images and natural-language task descriptions directly to low-level actions or action chunks.
+
+Strengths are real:
+
+- **Generalization across objects and phrasing** when training data spans diverse embodiments and scenes.
+- **Few-shot task specification** — operators describe goals instead of reprogramming every variant.
+- **Shared representations** between perception, language, and motor primitives in unified architectures.
+
+Limits are equally real and operational:
+
+- **Latency and compute** — transformer inference at control rates requires distillation, edge accelerators, or hierarchical policies (high-level VLA, low-level fast controller).
+- **Grounding errors** — language binds to the wrong object; without geometric verification, the arm moves confidently toward failure.
+- **Safety certification** — regulators and internal safety cases ask for bounded behavior; end-to-end VLAs are difficult to verify compared to decomposed stacks with explicit constraints.
+- **Data imbalance** — Internet-scale vision-language data dwarfs high-quality robot interaction logs; embodiment mismatch remains a fundamental research problem.
+
+**World models** and model-based RL pursue long-horizon reasoning by rolling forward latent dynamics. They excel in simulation benchmarks and structured manipulation; deployment requires aligning latent states with physical reality and detecting when rollouts diverge.
+
+<Tabs>
+  <Tab title="Industrial">
+    Mature geometric perception, rule-based or optimization planners, learned quality inspection. AI targets repeatability, cycle time, and downtime — not open-ended language commands. Safety standards (e.g. ISO 10218 family) drive hard stops and fenced workspaces.
+  </Tab>
+  <Tab title="Research">
+    VLAs, diffusion policies, humanoid whole-body learning, sim benchmarks with privileged information. Rapid iteration; weaker deployment guarantees. Papers optimize success rate on fixed suites — not years of field maintenance.
+  </Tab>
+  <Tab title="Consumer / service">
+    Navigation stacks, semantic mapping, speech interfaces. AI for UX and partial autonomy; conservative fallbacks when maps drift or crowds confuse trackers. Battery and thermal limits cap model size on-device.
+  </Tab>
+</Tabs>
+
+## Planning under uncertainty
+
+Formally, a robot operating with partial observability faces a **POMDP**: beliefs over states, actions that reduce uncertainty (information gathering), and costs over trajectories. Practitioners rarely implement full POMDP solvers; they implement **beliefs + heuristics**: active perception moves, conservative clearance, re-planning when covariance spikes.
+
+**When learned planners help:** high-dimensional contact-rich sequences, deformable object interaction, scenes where hand-tuned cost functions fail. Learning can propose candidates or warm-start optimization.
+
+**When classical planners remain mandatory:** safety-critical bounds, certifiable collision checking, predictable worst-case timing, auditable decision logs. Learned components may rank options; a verifier rejects infeasible or unsafe ones.
+
+The design pattern that scales: **learned proposal, verified execution**.
+
+## Human–robot interaction and multi-agent systems
+
+Collaborative robots (cobots) under ISO/TS 15066-style thinking require force and speed monitoring, workspace sharing, and clear modes (automatic vs manual guidance). AI contributes **intent prediction** — inferring reach direction, gaze, or gait — to reduce unnecessary stops without removing compliance limits.
+
+**Shared autonomy** blends human input with autonomous assistance: wheelchair corridor following, surgical camera holding, remote teleoperation with local collision avoidance. The learned layer must never fight the human's authoritative input on safety-critical channels.
+
+**Fleet and multi-robot** settings add coordination: task allocation, traffic rules in shared maps, and occasionally emergent behaviors from multi-agent RL. Production fleets favor **explicit protocols** (reservations, MQTT/ROS 2 services, central schedulers) over fully emergent policies because debugging cross-robot failures at 3 a.m. has a cost.
+
+## Safety, verification, and deployment reality
+
+Functional safety culture in industrial robotics predates modern deep learning. Standards frameworks (ISO 10218, ISO/TS 15066, and evolving guidance on AI components) expect hazard analysis, protective stops, and defined stopping distances — not benchmark leaderboard scores.
+
+A deployable architecture layers:
+
+1. **Independent monitors** — workspace limits, velocity caps, force thresholds, heartbeat watchdogs.
+2. **OOD and confidence gating** — defer or stop when perception entropy spikes.
+3. **Fallback controllers** — freeze, brake, retreat to home, or request human takeover.
+4. **Logging and replay** — incident reconstruction across sense–act chain.
+
+<Warning>
+  Do not place learned components on safety-critical paths without independent verification, defined safe states, and tested fallbacks. A policy that works in 9,999 sim episodes can fail on the 10,000th real contact event.
+</Warning>
+
+Verification for neural networks is an active research area (interval bounds, Lipschitz constraints, runtime shields). Until your organization accepts a specific method in its safety case, treat learned modules as **advisory** to verified geometric and control layers.
+
+## What AI does not replace
+
+- **Real-time guarantees** — hard deadlines for braking and balance; kernels and RTOS priorities, not batch inference queues.
+- **Actuator and material limits** — torque, temperature, fatigue, gearbox backlash, battery sag.
+- **Contact physics** — Coulomb friction, impact, compliance; simulators approximate, reality invoices.
+- **Liability and ethics** — who is responsible when autonomy fails; whose labor is affected by deployment choices.
+- **Integration and maintenance** — calibration drift, cable wear, firmware mismatches; the "last mile" consumes project calendar.
+
+Autonomy is a product and operations problem. Models are one subsystem.
+
+## Integrating learned components: a practical path
+
+<Steps>
+  <Step title="Decompose the stack">
+    Map sense–act layers; insert learning only where uncertainty is high and verification can wrap the output.
+  </Step>
+  <Step title="Instrument everything">
+    Time-sync logs, ground-truth when available, failure taxonomy (perceive vs plan vs act).
+  </Step>
+  <Step title="Sim with skepticism">
+    Randomize physics and sensing; identify contact and sensor modes sim cannot reproduce; plan real-world calibration phases.
+  </Step>
+  <Step title="Ship with monitors">
+    OOD detection, constraint enforcement, human override; define safe states before tuning performance.
+  </Step>
+  <Step title="Fleet-learn cautiously">
+    Aggregate data with privacy and version control; avoid silent policy updates on safety-critical behavior without regression gates.
+  </Step>
+</Steps>
+
+## Outlook
+
+Several forces will shape the next decade:
+
+- **Edge inference** — smaller distilled models, NPUs on manipulator controllers, event-based vision reducing bandwidth.
+- **Standardized robot datasets** — open teleoperation and multi-embodiment logs lowering the cost of generalist pre-training.
+- **Regulation and transparency** — expectations for documentation of learned components in safety-related machinery.
+- **Neuromorphic and novel sensing** — spiking and silicon retina research may change latency–power trade-offs for reactive behaviors.
+
+The through-line does not change. Robotics succeeds when **AI reduces uncertainty in the loop** — what is seen, what is meant, what is likely to happen — while **control and safety engineering guarantee what must never be violated**. Pursuing autonomy for its own sake, without that separation, produces demos that impress and systems that fail quietly in production.
+
+## Further reading
+
+- Spong, Hutchinson, and Vidyasagar — *Robot Modeling and Control* (classical foundations)
+- Siciliano and Khatib — *Springer Handbook of Robotics* (broad reference)
+- Recent surveys on sim-to-real transfer, diffusion policies for manipulation, and vision-language-action models in embodied AI
+- ISO 10218 and ISO/TS 15066 documentation for industrial and collaborative robot safety context
